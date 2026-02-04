@@ -1,4 +1,4 @@
-import { IResponsavelRepository } from "../../core/repositories/ResponsavelRepository";
+import { IResponsavelRepository } from "../../core/repositories/IResponsavelRepository";
 import { Responsavel } from "../../core/entities/Responsavel";
 import { getDB } from "../local/database";
 
