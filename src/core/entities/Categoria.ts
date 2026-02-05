@@ -1,4 +1,4 @@
-export interface Categoria{
+export interface Categoria {
     id: string;
     nome: string;
     peso_porcentagem: number,

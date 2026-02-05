@@ -1,6 +1,6 @@
 import { Conta } from "../../entities/Conta";
-import { IContaRepository } from "../repositories/IContaRepository";
-import { IMetaRepository } from "../repositories/IMetaRepository";
+import { IContaRepository } from "../../repositories/IContaRepository";
+import { IMetaRepository } from "../../repositories/IMetaRepository";
 
 export class ProcessarInvestimentoUC {
   constructor(

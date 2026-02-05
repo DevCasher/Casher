@@ -10,4 +10,4 @@ export const mapToOrcamentoMensal = (row: any): OrcamentoMensal => {
     atualizado_em: row.atualizado_em,
     deletado_em: row.deletado_em
   };
-};
+}

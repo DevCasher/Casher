@@ -77,6 +77,7 @@ export const initDatabase = () => {
           responsavel_id TEXT,
           categoria_id TEXT,
           meta_id TEXT,
+          descricao TEXT NOT NULL,
           valor REAL NOT NULL,
           tipo TEXT CHECK (tipo IN ('Entrada', 'Saida', 'Investimento', 'Juros')),
           data TEXT DEFAULT CURRENT_DATE,

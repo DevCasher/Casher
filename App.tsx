@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 // Importações do nosso projeto
 import { initDatabase } from './src/data/local/database';
-import { ResponsavelRepository } from './src/data/repositories/ResponsavelRepositoryImpl';
+import { ResponsavelRepository } from './src/data/repositories/ResponsavelRepository';
 import { Responsavel } from './src/core/entities/Responsavel';
 
 export default function App() {
@@ -121,7 +121,7 @@ export default function App() {
           <TouchableOpacity style={styles.btnSave} onPress={handleSalvar}>
             <Text style={styles.btnText}>{idEditando ? "Atualizar" : "Adicionar"}</Text>
           </TouchableOpacity>
-          
+
           {idEditando && (
             <TouchableOpacity style={styles.btnCancel} onPress={handleCancelarEdicao}>
               <Text style={styles.btnText}>Cancelar</Text>

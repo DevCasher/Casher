@@ -1,8 +1,8 @@
 import { v4 as uuidv4 } from 'uuid';
-import { Transacao } from "../entities/Transacao";
-import { TransacaoDTO } from "../dtos/TransacaoDTO";
-import { ITransacaoRepository } from "../repositories/ITransacaoRepository";
-import { IContaRepository } from "../repositories/IContaRepository";
+import { Transacao } from '../../entities/Transacao';
+import { TransacaoDTO } from '../../entities/dto/TransacaoDTO';
+import { ITransacaoRepository } from '../../repositories/ITransacaoRepository';
+import { IContaRepository } from '../../repositories/IContaRepository';
 import { ProcessarEntradaUC } from "./ProcessarEntradaUC";
 import { ProcessarSaidaUC } from "./ProcessarSaidaUC";
 import { ProcessarInvestimentoUC } from "./ProcessarInvestimentoUC";
@@ -23,23 +23,25 @@ export class RegistrarTransacaoUC {
     const novaTransacao: Transacao = {
       id: uuidv4(),
       conta_id: conta.id,
+      responsavel_id: input.responsavelId,
       categoria_id: input.categoriaId,
       meta_id: input.metaId,
       descricao: input.descricao,
       valor: input.valor,
       tipo: input.tipo,
       data: input.data,
-      status: 'Efetivado',
-      sincronizado: false
+      sincronizado: false,
+      atualizado_em: new Date().toISOString(),
+      deletado_em: null
     };
 
     await this.transacaoRepo.create(novaTransacao);
 
     if (input.tipo === 'Saida') {
-      await this.processarSaida.execute(input.valor, conta, input.categoriaId, input.dataISO);
+      await this.processarSaida.execute(input.valor, conta, input.categoriaId, input.data);
       
     } else if (input.tipo === 'Entrada') {
-      await this.processarEntrada.execute(input.valor, conta, input.dataISO);
+      await this.processarEntrada.execute(input.valor, conta, input.data);
 
     } else if (input.tipo === 'Investimento') {
       await this.processarInvestimento.execute(input.valor, conta);

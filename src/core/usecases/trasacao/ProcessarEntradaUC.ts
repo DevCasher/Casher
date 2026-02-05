@@ -1,15 +1,15 @@
 import { Conta } from "../../entities/Conta";
-import { IContaRepository } from "../repositories/IContaRepository";
-import { ICategoriaRepository } from "../repositories/ICategoriaRepository";
-import { IMetaRepository } from "../repositories/IMetaRepository";
-import { IOrcamentoRepository } from "../repositories/IOrcamentoRepository";
+import { IContaRepository } from "../../repositories/IContaRepository";
+import { ICategoriaRepository } from "../../repositories/ICategoriaRepository";
+import { IMetaRepository } from "../../repositories/IMetaRepository";
+import { IOrcamentoMensalRepository } from "../../repositories/IOrcamentoMensalRepository";
 
 export class ProcessarEntradaUC {
   constructor(
     private contaRepo: IContaRepository,
     private categoriaRepo: ICategoriaRepository,
     private metaRepo: IMetaRepository,
-    private orcamentoRepo: IOrcamentoRepository
+    private orcamentoRepo: IOrcamentoMensalRepository
   ) {}
 
   async execute(valor: number, conta: Conta, dataISO: string): Promise<void> {

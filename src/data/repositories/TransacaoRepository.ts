@@ -8,7 +8,7 @@ export class TransacaoRepository implements ITransacaoRepository {
     async create(transacao: Transacao): Promise<void> {
         const db = getDB();
         await db.runAsync(
-            `INSERT INTO transacao (id, conta_id, responsavel_id, categoria_id, meta_id, valor_total, tipo, status, data, sincronizado, atualizado_em)
+            `INSERT INTO transacao (id, conta_id, responsavel_id, categoria_id, meta_id, valor, tipo, status, data, sincronizado, atualizado_em)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, CURRENT_TIMESTAMP)`,
             [
                 transacao.id, 
@@ -16,7 +16,7 @@ export class TransacaoRepository implements ITransacaoRepository {
                 transacao.responsavel_id, 
                 transacao.categoria_id, 
                 transacao.meta_id || null, 
-                transacao.valor_total, 
+                transacao.valor, 
                 transacao.tipo, 
                 transacao.data
             ]
@@ -71,14 +71,14 @@ export class TransacaoRepository implements ITransacaoRepository {
         const db = getDB();
         await db.runAsync(
             `UPDATE transacao
-            SET conta_id = ?, responsavel_id = ?, categoria_id = ?, meta_id = ?, valor_total = ?, tipo = ?, status = ?, data = ?, sincronizado = 0, atualizado_em = CURRENT_TIMESTAMP
+            SET conta_id = ?, responsavel_id = ?, categoria_id = ?, meta_id = ?, valor = ?, tipo = ?, status = ?, data = ?, sincronizado = 0, atualizado_em = CURRENT_TIMESTAMP
             WHERE id = ?`,
             [
                 transacao.conta_id,
                 transacao.responsavel_id,
                 transacao.categoria_id,
                 transacao.meta_id || null,
-                transacao.valor_total,
+                transacao.valor,
                 transacao.tipo,
                 transacao.data,
                 transacao.id

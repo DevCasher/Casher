@@ -4,7 +4,8 @@ export interface Transacao {
     responsavel_id: string;
     categoria_id: string;
     meta_id?: string;
-    valor_total: number;
+    descricao: string;
+    valor: number;
     tipo: 'Entrada' | 'Saida' | 'Investimento' | 'Juros';
     data: string;
     sincronizado: boolean;
