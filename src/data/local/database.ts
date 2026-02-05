@@ -79,7 +79,6 @@ export const initDatabase = () => {
           meta_id TEXT,
           valor_total REAL NOT NULL,
           tipo TEXT CHECK (tipo IN ('Entrada', 'Saida', 'Investimento')),
-          status TEXT CHECK (status IN ('Efetivado', 'Cancelado')) DEFAULT 'Efetivado',
           data TEXT DEFAULT CURRENT_DATE,
           sincronizado INTEGER DEFAULT 0,
           atualizado_em TEXT DEFAULT CURRENT_TIMESTAMP,

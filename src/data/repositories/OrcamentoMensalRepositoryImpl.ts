@@ -1,6 +1,6 @@
 import { OrcamentoMensal } from "../../core/entities/OrcamentoMensal";
 import { IOrcamentoMensalRepository } from "../../core/repositories/IOrcamentoMensalRepository";
-import { mapToOrcamentoMensal } from "./mapper/OrcamentoMensal";
+import { mapToOrcamentoMensal } from "./mapper/OrcamentoMensalMapper";
 import { getDB } from "../local/database";
 
 export class OrcamentoMensalRepository implements IOrcamentoMensalRepository {
