@@ -45,7 +45,7 @@ export const initDatabase = () => {
         CREATE TABLE IF NOT EXISTS orcamento_mensal (
           id TEXT PRIMARY KEY NOT NULL,
           categoria_id TEXT,
-          mes TEXT NOT NULL,
+          data TEXT NOT NULL,
           valor_disponivel REAL DEFAULT 0.00,
           sincronizado INTEGER DEFAULT 0,
           atualizado_em TEXT DEFAULT CURRENT_TIMESTAMP,
@@ -77,14 +77,9 @@ export const initDatabase = () => {
           responsavel_id TEXT,
           categoria_id TEXT,
           meta_id TEXT,
-<<<<<<< HEAD
           descricao TEXT NOT NULL,
           valor REAL NOT NULL,
           tipo TEXT CHECK (tipo IN ('Entrada', 'Saida', 'Investimento', 'Juros')),
-=======
-          valor_total REAL NOT NULL,
-          tipo TEXT CHECK (tipo IN ('Entrada', 'Saida', 'Investimento')),
->>>>>>> 493d5c4 (:sparkles: feat: CRUD Transação)
           data TEXT DEFAULT CURRENT_DATE,
           sincronizado INTEGER DEFAULT 0,
           atualizado_em TEXT DEFAULT CURRENT_TIMESTAMP,

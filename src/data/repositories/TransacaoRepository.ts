@@ -1,5 +1,6 @@
 import { ITransacaoRepository } from "../../core/repositories/ITransacaoRepository";
 import { Transacao } from "../../core/entities/Transacao";
+import { TransacaoFiltroDTO } from "../../core/entities/dto/TransacaoFiltroDTO";
 import { mapToTransacao } from "../repositories/mapper/TransacaoMapper";
 import { getDB } from "../local/database";
 
@@ -41,27 +42,35 @@ export class TransacaoRepository implements ITransacaoRepository {
         return result ? mapToTransacao(result) : null;
     }
 
-    async getFiltered(inicio?: string, fim?: string, categoriaId?: string): Promise<Transacao[]> {
+    async getFiltered(filtro: TransacaoFiltroDTO): Promise<Transacao[]> {
         const db = getDB();
         let query = `SELECT * FROM transacao WHERE deletado_em IS NULL`;
         const params: any[] = [];
 
-        if (inicio) {
+        if (filtro.dataInicio) {
             query += ` AND data >= ?`;
-            params.push(inicio);
+            params.push(filtro.dataInicio);
         }
-        
-        if (fim) {
+
+        if (filtro.dataFim) {
             query += ` AND data <= ?`;
-            params.push(fim);
+            params.push(filtro.dataFim);
         }
 
-        if (categoriaId) {
+        if (filtro.categoriaId) {
             query += ` AND categoria_id = ?`;
-            params.push(categoriaId);
+            params.push(filtro.categoriaId);
         }
 
-        query += ` ORDER BY data DESC`;
+        if (filtro.metaId) {
+            query += ` AND meta_id = ?`;
+            params.push(filtro.metaId);
+        }
+
+        if (filtro.tipo) {
+            query += ` AND tipo = ?`;
+            params.push(filtro.tipo);
+        }
 
         const result = await db.getAllAsync<any>(query, params);
         return result.map(mapToTransacao);

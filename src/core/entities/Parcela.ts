@@ -3,7 +3,7 @@ export interface Parcela{
    transacao_id: string;
    valor: number;
    data_vencimento: string;
-   sincronizado: string;
+   sincronizado: boolean;
    atualizado_em: string;
    deletado_em: string;
 }

@@ -6,4 +6,5 @@ export interface IContaRepository {
   getById(id: string): Promise<Conta | null>;
   update(responsavel: Conta): Promise<void>;
   delete(id: string): Promise<void>;
+  updateSaldo(id: string, valor: number): Promise<void>;
 }

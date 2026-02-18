@@ -1,5 +1,6 @@
 import { IResponsavelRepository } from "../../core/repositories/IResponsavelRepository";
 import { Responsavel } from "../../core/entities/Responsavel";
+import { mapToResponsavel } from "../repositories/mapper/ResponsavelMapper";
 import { getDB } from "../local/database";
 
 export class ResponsavelRepository implements IResponsavelRepository {
@@ -19,13 +20,7 @@ export class ResponsavelRepository implements IResponsavelRepository {
       `SELECT * FROM responsavel WHERE deletado_em IS NULL ORDER BY nome ASC`
     );
 
-    return result.map(row => ({
-      id: row.id,
-      nome: row.nome,
-      sincronizado: row.sincronizado === 1,
-      atualizado_em: row.atualizado_em,
-      deletado_em: row.deletado_em
-    }));
+    return result.map(mapToResponsavel);
   }
 
   async getById(id: string): Promise<Responsavel | null> {
@@ -35,15 +30,7 @@ export class ResponsavelRepository implements IResponsavelRepository {
       [id]
     );
 
-    if (!result) return null;
-
-    return {
-      id: result.id,
-      nome: result.nome,
-      sincronizado: result.sincronizado === 1,
-      atualizado_em: result.atualizado_em,
-      deletado_em: result.deletado_em
-    };
+    return result ? mapToResponsavel(result) : null;
   }
 
   async update(responsavel: Responsavel): Promise<void> {

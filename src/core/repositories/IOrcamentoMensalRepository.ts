@@ -5,7 +5,8 @@ export interface IOrcamentoMensalRepository {
   getAll(): Promise<OrcamentoMensal[]>;
   getById(id: string): Promise<OrcamentoMensal | null>;
   getAtualByCategoria(categoria_id: string): Promise<OrcamentoMensal | null>;
-  getPorPeriodo(mesInicio: string, mesFim: string): Promise<OrcamentoMensal[]>;
+  getAllAtual(): Promise<OrcamentoMensal[]>;
+  getPorPeriodo(dataInicio: string, dataFim: string): Promise<OrcamentoMensal[]>;
   update(orcamento: OrcamentoMensal): Promise<void>;
   delete(id: string): Promise<void>;
 }

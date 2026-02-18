@@ -13,7 +13,7 @@ export class ProcessarEntradaUC {
   ) {}
 
   async execute(valor: number, conta: Conta, dataISO: string): Promise<void> {
-    await this.contaRepo.updateSaldo(conta.id, conta.saldo_atual + valor);
+    await this.contaRepo.updateSaldo(conta.id, conta.saldo + valor);
 
     const categorias = await this.categoriaRepo.getAll();
     const metas = await this.metaRepo.getAllAtivas();
@@ -23,15 +23,14 @@ export class ProcessarEntradaUC {
 
     if (somaPesos === 0) return;
 
-    const mesReferencia = dataISO.substring(0, 7);
-
     for (const cat of categorias) {
       if (cat.peso_porcentagem > 0) {
         const parte = (valor * cat.peso_porcentagem) / somaPesos;
         
-        const atual = await this.orcamentoRepo.getByCategoriaMes(cat.id, mesReferencia);
+        const atual = await this.orcamentoRepo.getAtualByCategoria(cat.id);
         const novoSaldo = (atual?.valor_disponivel || 0) + parte;
-        await this.orcamentoRepo.upsert(cat.id, mesReferencia, novoSaldo);
+        atual!.valor_disponivel = novoSaldo;
+        await this.orcamentoRepo.update(atual!);
       }
     }
 

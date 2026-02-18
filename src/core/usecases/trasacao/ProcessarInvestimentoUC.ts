@@ -9,7 +9,7 @@ export class ProcessarInvestimentoUC {
   ) {}
 
   async execute(valor: number, conta: Conta ): Promise<void> {
-    await this.contaRepo.updateSaldo(conta.id, conta.saldo_atual + valor);
+    await this.contaRepo.updateSaldo(conta.id, conta.saldo + valor);
 
     const metas = await this.metaRepo.getAllAtivas();
     const somaPesos = metas.reduce((sum, m) => sum + (m.peso_porcentagem || 0), 0);

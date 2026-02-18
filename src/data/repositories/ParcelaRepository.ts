@@ -1,6 +1,8 @@
 import { Parcela } from "../../core/entities/Parcela"; 
 import { IParcelaRepository } from "../../core/repositories/IParcelaRepository"; 
-import { mapToParcela } from "./mapper/ParcelaMapper"; import { getDB } from "../local/database"
+import { mapToParcela } from "./mapper/ParcelaMapper";
+import { getDB } from "../local/database";
+
 export class ParcelaRepository implements IParcelaRepository {
 
   async create(parcela: Parcela): Promise<void> {
@@ -18,7 +20,7 @@ export class ParcelaRepository implements IParcelaRepository {
       `SELECT * FROM parcela WHERE deletado_em IS NULL ORDER BY data_vencimento ASC`
     );
 
-    return result.map((row: any) => this.mapToParcela(row));
+    return result.map(mapToParcela);
   }
 
   async getById(id: string): Promise<Parcela | null> {
@@ -28,7 +30,7 @@ export class ParcelaRepository implements IParcelaRepository {
       [id]
     );
 
-    return result ? this.mapToParcela(result) : null;
+    return result ? mapToParcela(result) : null;
   }
 
   async update(parcela: Parcela): Promise<void> {
@@ -49,17 +51,5 @@ export class ParcelaRepository implements IParcelaRepository {
       WHERE id = ?`,
       [id]
     );
-  }
-
-  private mapToParcela(row: any): Parcela {
-    return {
-      id: row.id,
-      transacao_id: row.transacao_id,
-      valor: row.valor,
-      data_vencimento: row.data_vencimento,
-      sincronizado: row.sincronizado,
-      atualizado_em: row.atualizado_em,
-      deletado_em: row.deletado_em
-    };
   }
 }

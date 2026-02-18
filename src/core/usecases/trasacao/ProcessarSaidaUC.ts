@@ -14,23 +14,26 @@ export class ProcessarSaidaUC {
     ) { }
 
     async execute(valor: number, conta: Conta, categoriaId: string, dataISO: string): Promise<void> {
-        await this.contaRepo.updateSaldo(conta.id, conta.saldo_atual - valor);
+        await this.contaRepo.updateSaldo(conta.id, conta.saldo - valor);
 
-        const mesReferencia = dataISO.substring(0, 7);
-        const orcamentoPrincipal = await this.orcamentoRepo.getByCategoriaMes(categoriaId, mesReferencia);
+        const dataAtual = dataISO;
+
+        const orcamentoPrincipal = await this.orcamentoRepo.getAtualByCategoria(categoriaId);
         const saldoDisponivel = orcamentoPrincipal ? orcamentoPrincipal.valor_disponivel : 0;
 
         if (saldoDisponivel >= valor) {
-            await this.orcamentoRepo.upsert(categoriaId, mesReferencia, saldoDisponivel - valor);
+            orcamentoPrincipal!.valor_disponivel = saldoDisponivel - valor;
+            await this.orcamentoRepo.update(orcamentoPrincipal!);
             return;
+        } else {
+            orcamentoPrincipal!.valor_disponivel = 0;
+            await this.orcamentoRepo.update(orcamentoPrincipal!);
         }
-
-        await this.orcamentoRepo.upsert(categoriaId, mesReferencia, 0);
 
         let prejuizoRestante = valor - saldoDisponivel;
 
         const categorias = await this.categoriaRepo.getAll();
-        const orcamentosDoMes = await this.orcamentoRepo.getAllByMes(mesReferencia);
+        const orcamentosDoMes = await this.orcamentoRepo.getAllAtual();
 
         let candidatos = categorias
             .filter(c => c.id !== categoriaId)
@@ -42,7 +45,7 @@ export class ProcessarSaidaUC {
             .filter(c => c.saldo > 0 && c.peso > 0);
 
         prejuizoRestante = await this.drenarProporcionalmente(prejuizoRestante, candidatos, async (id, novoSaldo) => {
-            await this.orcamentoRepo.upsert(id, mesReferencia, novoSaldo);
+            await this.orcamentoRepo.upsert(id, dataAtual, novoSaldo);
         });
 
         if (prejuizoRestante > 0.01) {

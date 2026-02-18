@@ -8,18 +8,31 @@ export class OrcamentoMensalRepository implements IOrcamentoMensalRepository {
   async create(orcamento: OrcamentoMensal): Promise<void> {
     const db = getDB();
     await db.runAsync(
-      `INSERT INTO orcamento_mensal (id, categoria_id, mes, valor_disponivel, sincronizado, atualizado_em)
+      `INSERT INTO orcamento_mensal (id, categoria_id, data, valor_disponivel, sincronizado, atualizado_em)
       VALUES (?, ?, ?, ?, 0, CURRENT_TIMESTAMP)`,
-      [orcamento.id, orcamento.categoria_id, orcamento.mes, orcamento.valor_disponivel]
+      [orcamento.id, orcamento.categoria_id, orcamento.data, orcamento.valor_disponivel]
     );
   }
 
   async getAll(): Promise<OrcamentoMensal[]> {
     const db = getDB();
     const result = await db.getAllAsync<any>(
-      `SELECT * FROM orcamento_mensal WHERE deletado_em IS NULL ORDER BY mes DESC`
+      `SELECT * FROM orcamento_mensal WHERE deletado_em IS NULL ORDER BY data DESC`
     );
 
+    return result.map(mapToOrcamentoMensal);
+  }
+
+  async getAllAtual(): Promise<OrcamentoMensal[]> {
+    const db = getDB();
+    const result = await db.getAllAsync<any>(
+      `SELECT o.*, c.nome as cat_nome, c.peso_porcentagem as cat_peso
+      FROM orcamento_mensal o
+      JOIN categoria c ON o.categoria_id = c.id
+      WHERE o.deletado_em IS NULL
+      AND o.data <= date('now', 'start of month', '+1 month', '-1 day')
+      ORDER BY o.data DESC`
+    );
     return result.map(mapToOrcamentoMensal);
   }
 
@@ -41,7 +54,7 @@ export class OrcamentoMensalRepository implements IOrcamentoMensalRepository {
       `SELECT o.*, c.nome as cat_nome, c.peso_porcentagem as cat_peso
       FROM orcamento_mensal o
       WHERE o.categoria_id = ? AND o.deletado_em IS NULL
-      ORDER BY o.mes DESC
+      ORDER BY o.data DESC
       LIMIT 1`,
       [categoria_id]
     );
@@ -49,15 +62,15 @@ export class OrcamentoMensalRepository implements IOrcamentoMensalRepository {
     return result ? mapToOrcamentoMensal(result) : null;
   }
 
-  async getPorPeriodo(mesInicio: string, mesFim: string): Promise<OrcamentoMensal[]> {
+  async getPorPeriodo(dataInicio: string, dataFim: string): Promise<OrcamentoMensal[]> {
     const db = getDB();
     const result = await db.getAllAsync<any>(
       `SELECT o.*, c.nome as cat_nome
       FROM orcamento_mensal o
-      WHERE o.mes BETWEEN ? AND ? 
+      WHERE o.data BETWEEN ? AND ? 
       AND o.deletado_em IS NULL
-      ORDER BY o.mes DESC`,
-      [mesInicio, mesFim]
+      ORDER BY o.data DESC`,
+      [dataInicio, dataFim]
     );
 
     return result.map(mapToOrcamentoMensal);
@@ -67,9 +80,9 @@ export class OrcamentoMensalRepository implements IOrcamentoMensalRepository {
     const db = getDB();
     await db.runAsync(
       `UPDATE orcamento_mensal 
-      SET categoria_id = ?, mes = ?, valor_disponivel = ?, sincronizado = 0, atualizado_em = CURRENT_TIMESTAMP 
+      SET categoria_id = ?, data = ?, valor_disponivel = ?, sincronizado = 0, atualizado_em = CURRENT_TIMESTAMP 
       WHERE id = ?`,
-      [orcamento.categoria_id, orcamento.mes, orcamento.valor_disponivel, orcamento.id]
+      [orcamento.categoria_id, orcamento.data, orcamento.valor_disponivel, orcamento.id]
     );
   }
 
