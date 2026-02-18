@@ -71,11 +71,11 @@ export class ProcessarSaidaUC {
         let divida = dividaTotal;
 
         while (divida > 0.01 && candidatos.length > 0) {
-            const pesoTotal = candidatos.reduce((sum, c) => sum + c.peso, 0);
+            const pesoTotal = candidatos.reduce((sum, c) => sum + c.peso_porcentagem, 0);
             if (pesoTotal === 0) break;
 
             for (const cand of candidatos) {
-                const share = (cand.peso / pesoTotal) * divida;
+                const share = (cand.peso_porcentagem / pesoTotal) * divida;
                 if (cand.saldo <= share) {
                     cand.toPay = cand.saldo;
                     cand.willZero = true;
