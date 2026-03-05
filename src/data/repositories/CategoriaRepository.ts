@@ -8,8 +8,8 @@ export class CategoriaRepository implements ICategoriaRepository {
     async create(categoria: Categoria): Promise<void> {
         const db = getDB();
         await db.runAsync(
-            `INSERT INTO categoria (id, nome, peso_porcentagem, sincronizado, atualizado_em, deletado_em)
-            VALUES (?, ?, ?, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
+            `INSERT INTO categoria (id, nome, peso_porcentagem, sincronizado, atualizado_em)
+            VALUES (?, ?, ?, 0, CURRENT_TIMESTAMP)`,
             [categoria.id, categoria.nome, categoria.peso_porcentagem]
         );
     }
@@ -37,9 +37,9 @@ export class CategoriaRepository implements ICategoriaRepository {
         const db = getDB();
         await db.runAsync(
             `UPDATE categoria
-                SET nome = ?, peso_porcentagem = ?, sincronizado = 0, atualizado_em = CURRENT_TIMESTAMP, deletado_em = ?
+                SET nome = ?, peso_porcentagem = ?, sincronizado = 0, atualizado_em = CURRENT_TIMESTAMP
                 WHERE id = ?`,
-            [categoria.nome, categoria.peso_porcentagem, categoria.deletado_em, categoria.id]
+            [categoria.nome, categoria.peso_porcentagem, categoria.id]
         );
     }
 
