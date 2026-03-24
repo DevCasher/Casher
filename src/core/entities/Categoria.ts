@@ -4,5 +4,5 @@ export interface Categoria {
     peso_porcentagem: number,
     sincronizado: boolean,
     atualizado_em: string,
-    deletado_em: string;
+    deletado_em: string | null;
 }

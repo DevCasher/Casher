@@ -5,5 +5,5 @@ export interface Parcela{
    data_vencimento: string;
    sincronizado: boolean;
    atualizado_em: string;
-   deletado_em: string;
+   deletado_em: string | null;
 }

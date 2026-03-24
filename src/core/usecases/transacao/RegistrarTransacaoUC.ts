@@ -17,15 +17,15 @@ export class RegistrarTransacaoUC {
   ) {}
 
   async execute(input: TransacaoDTO): Promise<void> {
-    const conta = await this.contaRepo.getById(input.contaId);
-    if (!conta) throw new Error("Conta não encontrada");
+    const conta = await this.contaRepo.getById(input.conta_id);
+    if (!conta) throw new Error("Conta não encontrada.");
 
     const novaTransacao: Transacao = {
       id: uuidv4(),
       conta_id: conta.id,
-      responsavel_id: input.responsavelId,
-      categoria_id: input.categoriaId,
-      meta_id: input.metaId,
+      responsavel_id: input.responsavel_id,
+      categoria_id: input.categoria_id,
+      meta_id: input.meta_id,
       descricao: input.descricao,
       valor: input.valor,
       tipo: input.tipo,
@@ -38,7 +38,7 @@ export class RegistrarTransacaoUC {
     await this.transacaoRepo.create(novaTransacao);
 
     if (input.tipo === 'Saida') {
-      await this.processarSaida.execute(input.valor, conta, input.categoriaId, input.data);
+      await this.processarSaida.execute(input.valor, conta, input.categoria_id, input.data);
       
     } else if (input.tipo === 'Entrada') {
       await this.processarEntrada.execute(input.valor, conta, input.data);
