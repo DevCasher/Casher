@@ -19,18 +19,6 @@ export const initDatabase = () => {
       `);
 
       db.execSync(`
-        CREATE TABLE IF NOT EXISTS conta (
-          id TEXT PRIMARY KEY NOT NULL,
-          nome TEXT NOT NULL,
-          tipo TEXT CHECK (tipo IN ('Investimento', 'Corrente')),
-          saldo REAL DEFAULT 0.00,
-          sincronizado INTEGER DEFAULT 0,
-          atualizado_em TEXT DEFAULT CURRENT_TIMESTAMP,
-          deletado_em TEXT DEFAULT NULL
-        );
-      `);
-
-      db.execSync(`
         CREATE TABLE IF NOT EXISTS categoria (
           id TEXT PRIMARY KEY NOT NULL,
           nome TEXT NOT NULL,
@@ -73,7 +61,6 @@ export const initDatabase = () => {
       db.execSync(`
         CREATE TABLE IF NOT EXISTS transacao (
           id TEXT PRIMARY KEY NOT NULL,
-          conta_id TEXT,
           responsavel_id TEXT,
           categoria_id TEXT,
           meta_id TEXT,
@@ -84,7 +71,6 @@ export const initDatabase = () => {
           sincronizado INTEGER DEFAULT 0,
           atualizado_em TEXT DEFAULT CURRENT_TIMESTAMP,
           deletado_em TEXT DEFAULT NULL,
-          FOREIGN KEY (conta_id) REFERENCES conta(id),
           FOREIGN KEY (responsavel_id) REFERENCES responsavel(id),
           FOREIGN KEY (categoria_id) REFERENCES categoria(id),
           FOREIGN KEY (meta_id) REFERENCES meta(id)

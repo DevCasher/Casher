@@ -1,16 +1,11 @@
-import { Conta } from "../../entities/Conta";
-import { IContaRepository } from "../../repositories/IContaRepository";
 import { IMetaRepository } from "../../repositories/IMetaRepository";
 
 export class ProcessarInvestimentoUC {
   constructor(
-    private contaRepo: IContaRepository,
     private metaRepo: IMetaRepository
   ) {}
 
-  async execute(valor: number, conta: Conta ): Promise<void> {
-    await this.contaRepo.updateSaldo(conta.id, conta.saldo + valor);
-
+  async execute(valor: number ): Promise<void> {
     const metas = await this.metaRepo.getAllAtivas();
     const somaPesos = metas.reduce((sum, m) => sum + (m.peso_porcentagem || 0), 0);
 

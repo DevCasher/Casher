@@ -1,5 +1,4 @@
 import { ProcessarEntradaUC } from '../../../src/core/usecases/transacao/ProcessarEntradaUC';
-import { Conta } from '../../../src/core/entities/Conta';
 import { Categoria } from '../../../src/core/entities/Categoria';
 import { Meta } from '../../../src/core/entities/Meta';
 import { OrcamentoMensal } from '../../../src/core/entities/OrcamentoMensal';
@@ -7,9 +6,6 @@ import { OrcamentoMensal } from '../../../src/core/entities/OrcamentoMensal';
 describe('ProcessarEntradaUC', () => {
   let processarEntradaUC: ProcessarEntradaUC;
 
-  const mockContaRepo = {
-    updateSaldo: jest.fn(),
-  };
   const mockCategoriaRepo = {
     getAll: jest.fn(),
   };
@@ -22,28 +18,17 @@ describe('ProcessarEntradaUC', () => {
     update: jest.fn(),
   };
 
-  const mockConta: Conta = {
-    id: 'conta-123',
-    nome: 'Conta Corrente',
-    tipo: 'Corrente',
-    saldo: 1000,
-    sincronizado: false,
-    atualizado_em: '2023-10-01',
-    deletado_em: null
-  };
-
   beforeEach(() => {
     jest.clearAllMocks();
     
     processarEntradaUC = new ProcessarEntradaUC(
-      mockContaRepo as any,
       mockCategoriaRepo as any,
       mockMetaRepo as any,
       mockOrcamentoRepo as any
     );
   });
 
-  it('deve atualizar o saldo da conta e distribuir o valor proporcionalmente entre categorias e metas', async () => {
+  it('deve distribuir o valor proporcionalmente entre categorias e metas', async () => {
     const valorEntrada = 1000;
     
     const mockCategorias: Categoria[] = [
@@ -61,9 +46,7 @@ describe('ProcessarEntradaUC', () => {
     mockMetaRepo.getAllAtivas.mockResolvedValue(mockMetas);
     mockOrcamentoRepo.getAtualByCategoria.mockResolvedValue(mockOrcamento);
 
-    await processarEntradaUC.execute(valorEntrada, mockConta, '2023-10-15T10:00:00Z');
-
-    expect(mockContaRepo.updateSaldo).toHaveBeenCalledWith(mockConta.id, 2000);
+    await processarEntradaUC.execute(valorEntrada, '2023-10-15T10:00:00Z');
 
     expect(mockOrcamentoRepo.getAtualByCategoria).toHaveBeenCalledWith('cat-1');
     expect(mockOrcamentoRepo.update).toHaveBeenCalledWith(
@@ -76,7 +59,7 @@ describe('ProcessarEntradaUC', () => {
     expect(mockMetaRepo.updateValorAtual).toHaveBeenCalledWith('meta-1', 400);
   });
 
-  it('deve atualizar apenas o saldo da conta se a soma dos pesos for igual a zero', async () => {
+  it('não deve fazer nada se a soma dos pesos for igual a zero', async () => {
     const valorEntrada = 500;
     
     mockCategoriaRepo.getAll.mockResolvedValue([
@@ -84,9 +67,7 @@ describe('ProcessarEntradaUC', () => {
     ]);
     mockMetaRepo.getAllAtivas.mockResolvedValue([]);
 
-    await processarEntradaUC.execute(valorEntrada, mockConta, '2023-10-15T10:00:00Z');
-
-    expect(mockContaRepo.updateSaldo).toHaveBeenCalledWith(mockConta.id, 1500);
+    await processarEntradaUC.execute(valorEntrada, '2023-10-15T10:00:00Z');
 
     expect(mockOrcamentoRepo.update).not.toHaveBeenCalled();
     expect(mockMetaRepo.updateValorAtual).not.toHaveBeenCalled();
@@ -110,7 +91,7 @@ describe('ProcessarEntradaUC', () => {
       id: 'orc-1', categoria_id: 'cat-1', data: '2023-10-01', valor_disponivel: 0
     });
 
-    await processarEntradaUC.execute(valorEntrada, mockConta, '2023-10-15T10:00:00Z');
+    await processarEntradaUC.execute(valorEntrada, '2023-10-15T10:00:00Z');
 
     expect(mockOrcamentoRepo.getAtualByCategoria).toHaveBeenCalledWith('cat-1');
     expect(mockOrcamentoRepo.getAtualByCategoria).not.toHaveBeenCalledWith('cat-zero');

@@ -1,33 +1,37 @@
-import { Conta } from "../../entities/Conta";
-import { Categoria } from "../../entities/Categoria";
-import { IContaRepository } from "../../repositories/IContaRepository";
 import { ICategoriaRepository } from "../../repositories/ICategoriaRepository";
 import { IMetaRepository } from "../../repositories/IMetaRepository";
 import { IOrcamentoMensalRepository } from "../../repositories/IOrcamentoMensalRepository";
 
+interface CandidatoDrenagem {
+    id: string;
+    peso_porcentagem: number;
+    saldo: number;
+    toPay?: number;
+    willZero?: boolean;
+}
+
 export class ProcessarSaidaUC {
     constructor(
-        private contaRepo: IContaRepository,
         private categoriaRepo: ICategoriaRepository,
         private metaRepo: IMetaRepository,
         private orcamentoRepo: IOrcamentoMensalRepository
     ) { }
 
-    async execute(valor: number, conta: Conta, categoriaId: string, dataISO: string): Promise<void> {
-        await this.contaRepo.updateSaldo(conta.id, conta.saldo - valor);
-
-        const dataAtual = dataISO;
-
+    async execute(valor: number, categoriaId: string, dataISO: string): Promise<void> {
         const orcamentoPrincipal = await this.orcamentoRepo.getAtualByCategoria(categoriaId);
-        const saldoDisponivel = orcamentoPrincipal ? orcamentoPrincipal.valor_disponivel : 0;
+        let saldoDisponivel = 0;
 
-        if (saldoDisponivel >= valor) {
-            orcamentoPrincipal!.valor_disponivel = saldoDisponivel - valor;
-            await this.orcamentoRepo.update(orcamentoPrincipal!);
-            return;
-        } else {
-            orcamentoPrincipal!.valor_disponivel = 0;
-            await this.orcamentoRepo.update(orcamentoPrincipal!);
+        if (orcamentoPrincipal) {
+            saldoDisponivel = orcamentoPrincipal.valor_disponivel;
+
+            if (saldoDisponivel >= valor) {
+                orcamentoPrincipal.valor_disponivel = saldoDisponivel - valor;
+                await this.orcamentoRepo.update(orcamentoPrincipal);
+                return;
+            } else {
+                orcamentoPrincipal.valor_disponivel = 0;
+                await this.orcamentoRepo.update(orcamentoPrincipal);
+            }
         }
 
         let prejuizoRestante = valor - saldoDisponivel;
@@ -35,40 +39,51 @@ export class ProcessarSaidaUC {
         const categorias = await this.categoriaRepo.getAll();
         const orcamentosDoMes = await this.orcamentoRepo.getAllAtual();
 
-        let candidatos = categorias
+        let candidatos: CandidatoDrenagem[] = categorias
             .filter(c => c.id !== categoriaId)
             .map(cat => ({
                 id: cat.id,
-                peso: cat.peso_porcentagem,
+                peso_porcentagem: cat.peso_porcentagem,
                 saldo: orcamentosDoMes.find(o => o.categoria_id === cat.id)?.valor_disponivel || 0
             }))
-            .filter(c => c.saldo > 0 && c.peso > 0);
+            .filter(c => c.saldo > 0 && c.peso_porcentagem > 0);
 
         prejuizoRestante = await this.drenarProporcionalmente(prejuizoRestante, candidatos, async (id, novoSaldo) => {
-            await this.orcamentoRepo.upsert(id, dataAtual, novoSaldo);
+            const orcamentoCand = await this.orcamentoRepo.getAtualByCategoria(id);
+            if (orcamentoCand) {
+                orcamentoCand.valor_disponivel = novoSaldo;
+                await this.orcamentoRepo.update(orcamentoCand);
+            }
         });
 
         if (prejuizoRestante > 0.01) {
             const metas = await this.metaRepo.getAllAtivas();
-            let candidatosMeta = metas
+            let candidatosMeta: CandidatoDrenagem[] = metas
                 .filter(m => m.valor_atual > 0)
-                .map(m => ({ id: m.id, peso: m.peso_porcentagem, saldo: m.valor_atual }));
+                .map(m => ({ 
+                    id: m.id, 
+                    peso_porcentagem: m.peso_porcentagem, 
+                    saldo: m.valor_atual 
+                }));
 
             await this.drenarProporcionalmente(prejuizoRestante, candidatosMeta, async (id, novoSaldo) => {
                 const metaOriginal = metas.find(m => m.id === id);
-                const delta = novoSaldo - (metaOriginal?.valor_atual || 0);
-                await this.metaRepo.updateValorAtual(id, delta);
+                if (metaOriginal) {
+                    const delta = novoSaldo - metaOriginal.valor_atual;
+                    await this.metaRepo.updateValorAtual(id, delta);
+                }
             });
         }
     }
 
     private async drenarProporcionalmente(
         dividaTotal: number,
-        candidatos: Categoria[],
+        candidatos: CandidatoDrenagem[],
         salvarCallback: (id: string, novoSaldo: number) => Promise<void>
     ): Promise<number> {
 
         let divida = dividaTotal;
+        const candidatosParaSalvar = [...candidatos];
 
         while (divida > 0.01 && candidatos.length > 0) {
             const pesoTotal = candidatos.reduce((sum, c) => sum + c.peso_porcentagem, 0);
@@ -101,7 +116,7 @@ export class ProcessarSaidaUC {
             if (totalDescontadoNestaRodada <= 0) break;
         }
 
-        for (const c of candidatos) {
+        for (const c of candidatosParaSalvar) {
             await salvarCallback(c.id, c.saldo);
         }
 

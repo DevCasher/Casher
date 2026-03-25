@@ -1,38 +1,23 @@
 import { ProcessarInvestimentoUC } from '../../../src/core/usecases/transacao/ProcessarInvestimentoUC';
-import { Conta } from '../../../src/core/entities/Conta';
 import { Meta } from '../../../src/core/entities/Meta';
 
 describe('ProcessarInvestimentoUC', () => {
   let processarInvestimentoUC: ProcessarInvestimentoUC;
 
-  const mockContaRepo = {
-    updateSaldo: jest.fn(),
-  };
   const mockMetaRepo = {
     getAllAtivas: jest.fn(),
     updateValorAtual: jest.fn(),
-  };
-
-  const mockConta: Conta = {
-    id: 'conta-123',
-    nome: 'Conta Corretora',
-    tipo: 'Investimento',
-    saldo: 5000,
-    sincronizado: false,
-    atualizado_em: '2023-10-01',
-    deletado_em: null
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
     
     processarInvestimentoUC = new ProcessarInvestimentoUC(
-      mockContaRepo as any,
       mockMetaRepo as any
     );
   });
 
-  it('deve atualizar o saldo da conta e distribuir o valor proporcionalmente entre as metas', async () => {
+  it('deve distribuir o valor proporcionalmente entre as metas', async () => {
     const valorInvestimento = 1000;
     
     const mockMetas: Meta[] = [
@@ -42,16 +27,14 @@ describe('ProcessarInvestimentoUC', () => {
 
     mockMetaRepo.getAllAtivas.mockResolvedValue(mockMetas);
 
-    await processarInvestimentoUC.execute(valorInvestimento, mockConta);
-
-    expect(mockContaRepo.updateSaldo).toHaveBeenCalledWith(mockConta.id, 6000);
+    await processarInvestimentoUC.execute(valorInvestimento);
 
     expect(mockMetaRepo.updateValorAtual).toHaveBeenCalledWith('meta-1', 600);
 
     expect(mockMetaRepo.updateValorAtual).toHaveBeenCalledWith('meta-2', 400);
   });
 
-  it('deve atualizar apenas o saldo da conta se não houver metas ativas ou se a soma dos pesos for zero', async () => {
+  it('não deve fazer nada se não houver metas ativas ou se a soma dos pesos for zero', async () => {
     const valorInvestimento = 500;
     
     const mockMetas: Meta[] = [
@@ -60,9 +43,7 @@ describe('ProcessarInvestimentoUC', () => {
 
     mockMetaRepo.getAllAtivas.mockResolvedValue(mockMetas);
 
-    await processarInvestimentoUC.execute(valorInvestimento, mockConta);
-
-    expect(mockContaRepo.updateSaldo).toHaveBeenCalledWith(mockConta.id, 5500);
+    await processarInvestimentoUC.execute(valorInvestimento);
 
     expect(mockMetaRepo.updateValorAtual).not.toHaveBeenCalled();
   });
@@ -77,7 +58,7 @@ describe('ProcessarInvestimentoUC', () => {
 
     mockMetaRepo.getAllAtivas.mockResolvedValue(mockMetas);
 
-    await processarInvestimentoUC.execute(valorInvestimento, mockConta);
+    await processarInvestimentoUC.execute(valorInvestimento);
 
     expect(mockMetaRepo.updateValorAtual).toHaveBeenCalledWith('meta-1', 200);
     

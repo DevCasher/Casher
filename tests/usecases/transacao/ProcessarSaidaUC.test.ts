@@ -1,14 +1,10 @@
 import { ProcessarSaidaUC } from '../../../src/core/usecases/transacao/ProcessarSaidaUC';
-import { Conta } from '../../../src/core/entities/Conta';
 import { Categoria } from '../../../src/core/entities/Categoria';
 import { OrcamentoMensal } from '../../../src/core/entities/OrcamentoMensal';
 
 describe('ProcessarSaidaUC', () => {
   let processarSaidaUC: ProcessarSaidaUC;
 
-  const mockContaRepo = {
-    updateSaldo: jest.fn(),
-  };
   const mockCategoriaRepo = {
     getAll: jest.fn(),
   };
@@ -20,17 +16,6 @@ describe('ProcessarSaidaUC', () => {
     getAtualByCategoria: jest.fn(),
     getAllAtual: jest.fn(),
     update: jest.fn(),
-    upsert: jest.fn(),
-  };
-
-  const mockConta: Conta = {
-    id: 'conta-123',
-    nome: 'Conta Corrente',
-    tipo: 'Corrente',
-    saldo: 1000,
-    sincronizado: false,
-    atualizado_em: '2023-10-01',
-    deletado_em: null
   };
 
   const dataISO = '2023-10-15T10:00:00Z';
@@ -39,14 +24,13 @@ describe('ProcessarSaidaUC', () => {
     jest.clearAllMocks();
     
     processarSaidaUC = new ProcessarSaidaUC(
-      mockContaRepo as any,
       mockCategoriaRepo as any,
       mockMetaRepo as any,
       mockOrcamentoRepo as any
     );
   });
 
-  it('deve atualizar o saldo da conta e descontar apenas do orçamento da categoria principal se houver saldo suficiente', async () => {
+  it('deve descontar apenas do orçamento da categoria principal se houver saldo suficiente', async () => {
     const valorSaida = 200;
     const categoriaId = 'cat-principal';
     
@@ -56,9 +40,7 @@ describe('ProcessarSaidaUC', () => {
 
     mockOrcamentoRepo.getAtualByCategoria.mockResolvedValue(mockOrcamento);
 
-    await processarSaidaUC.execute(valorSaida, mockConta, categoriaId, dataISO);
-
-    expect(mockContaRepo.updateSaldo).toHaveBeenCalledWith(mockConta.id, 800);
+    await processarSaidaUC.execute(valorSaida, categoriaId, dataISO);
 
     expect(mockOrcamentoRepo.getAtualByCategoria).toHaveBeenCalledWith(categoriaId);
     expect(mockOrcamentoRepo.update).toHaveBeenCalledWith(
@@ -86,9 +68,7 @@ describe('ProcessarSaidaUC', () => {
     mockOrcamentoRepo.getAllAtual.mockResolvedValue([]);
     mockMetaRepo.getAllAtivas.mockResolvedValue([]);
 
-    await processarSaidaUC.execute(valorSaida, mockConta, categoriaId, dataISO);
-
-    expect(mockContaRepo.updateSaldo).toHaveBeenCalledWith(mockConta.id, 400);
+    await processarSaidaUC.execute(valorSaida, categoriaId, dataISO);
 
     expect(mockOrcamentoRepo.update).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -123,12 +103,12 @@ describe('ProcessarSaidaUC', () => {
     mockCategoriaRepo.getAll.mockResolvedValue(mockCategorias);
     mockOrcamentoRepo.getAllAtual.mockResolvedValue(mockOrcamentosAtuais);
 
-    await processarSaidaUC.execute(valorSaida, mockConta, categoriaId, dataISO);
+    await processarSaidaUC.execute(valorSaida, categoriaId, dataISO);
 
     expect(spyDrenar).toHaveBeenCalledWith(
       500,
       expect.arrayContaining([
-        expect.objectContaining({ id: 'cat-secundaria', peso: 50, saldo: 1000 })
+        expect.objectContaining({ id: 'cat-secundaria', peso_porcentagem: 50, saldo: 1000 })
       ]),
       expect.any(Function)
     );
